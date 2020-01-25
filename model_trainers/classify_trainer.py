@@ -16,10 +16,10 @@ class ClassificationModelTrainer:
 
     def __init__(self, model: nn.Module, optimizer: optim.Optimizer, scheduler: SchedulerType,
                  dataset: str, batch_size: int, data_path: str, log_path: str, checkpoint_path: str):
+        torch.backends.cudnn.benchmark = True  # Increase speed assuming input sizes are the same, which they are.
 
         self.logger = get_logger(name=__name__, save_dir=log_path)
         self.logger.info('Initializing Classification Model Trainer.')
-        torch.backends.cudnn.benchmark = True  # Increase speed assuming input sizes are the same, which they are.
 
         if dataset.upper() == 'CIFAR10':
             train_loader, eval_loader = get_cifar10_loaders(
@@ -31,14 +31,14 @@ class ClassificationModelTrainer:
         self.optimizer = optimizer
         self.device = model.device
         self.loss_func = nn.CrossEntropyLoss()
-        self.writer = SummaryWriter(str(log_path))
+        self.writer = SummaryWriter(log_path)
         self.manager = CheckpointManager(model, optimizer, checkpoint_path, save_best_only=True)
         self.scheduler = scheduler  # No learning rate scheduling if scheduler = None.
         self.train_loader = train_loader
         self.eval_loader = eval_loader
         self.epoch = 0
 
-    def train_epoch(self) -> float:
+    def _train_epoch(self) -> float:
         self.model.train()  # Change settings for batchnorm, dropout, etc.
         torch.autograd.enable_grad = True  # Allow gradient calculations.
         losses = list()
@@ -52,13 +52,12 @@ class ClassificationModelTrainer:
             self.optimizer.step()
             losses.append(loss.detach())
 
-        losses = torch.stack(losses)
-        epoch_loss = torch.mean(losses).item()
+        epoch_loss = torch.mean(torch.stack(losses)).item()  # Minimizing device to host data transfer this way.
         self.writer.add_scalar(tag='Train/epoch_loss', scalar_value=epoch_loss, global_step=self.epoch)
         self.logger.info(f'Epoch {self.epoch:02d} Train epoch loss: {epoch_loss:.3f}.')
         return epoch_loss
 
-    def eval_epoch(self) -> float:
+    def _eval_epoch(self) -> float:
         self.model.eval()
         torch.autograd.enable_grad = False  # Disable gradient calculations for faster calculations.
         losses = list()
@@ -68,8 +67,7 @@ class ClassificationModelTrainer:
             loss = self.loss_func(outputs, targets.to(self.device))
             losses.append(loss)
 
-        losses = torch.stack(losses)
-        epoch_loss = torch.mean(losses).item()
+        epoch_loss = torch.mean(torch.stack(losses)).item()
         self.writer.add_scalar(tag='Eval/epoch_loss', scalar_value=epoch_loss, global_step=self.epoch)
         self.logger.info(f'Epoch {self.epoch:02d} Eval epoch loss: {epoch_loss:.3f}.')
 
@@ -81,8 +79,8 @@ class ClassificationModelTrainer:
     def _train_model(self, num_epochs: int):
         for epoch in tqdm(range(1, num_epochs + 1)):  # 1 based indexing. tqdm for progress bar.
             self.epoch = epoch
-            train_epoch_loss = self.train_epoch()
-            eval_epoch_loss = self.eval_epoch()
+            train_epoch_loss = self._train_epoch()
+            eval_epoch_loss = self._eval_epoch()
             self.manager.save(metric=eval_epoch_loss)
             over_fit = eval_epoch_loss - train_epoch_loss
             self.logger.info(f'Epoch {self.epoch:02d} Over-fitting: {over_fit:.4f}.')

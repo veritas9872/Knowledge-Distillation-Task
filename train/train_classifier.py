@@ -5,7 +5,7 @@ from torch import nn, optim
 
 from utils.init import initialize, get_gpu_if_available
 from utils.logs import save_dict_as_json
-from train.classify import ClassificationModelTrainer
+from model_trainers.classify_trainer import ClassificationModelTrainer
 
 
 def train_classifier(opt, model: nn.Module, train_method: str):
