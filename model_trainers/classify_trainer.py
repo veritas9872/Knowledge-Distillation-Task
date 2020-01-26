@@ -12,6 +12,9 @@ from utils.logs import get_logger
 
 
 class ClassificationModelTrainer:
+    """
+    Model trainer for classification task.
+    """
     SchedulerType = Union[optim.lr_scheduler._LRScheduler, optim.lr_scheduler.ReduceLROnPlateau]
 
     def __init__(self, model: nn.Module, optimizer: optim.Optimizer, scheduler: SchedulerType,
@@ -27,8 +30,8 @@ class ClassificationModelTrainer:
         else:
             raise NotImplementedError('Only CIFAR10 implemented.')
 
-        self.model = model
-        self.optimizer = optimizer
+        self.model = model  # Assumes model has already been sent to device.
+        self.optimizer = optimizer  # Assumes optimizer is associated with model.
         self.device = model.device
         self.loss_func = nn.CrossEntropyLoss()
         self.writer = SummaryWriter(log_path)
@@ -45,25 +48,21 @@ class ClassificationModelTrainer:
         correct = torch.tensor(0, device=self.device)  # Counter for number of correct predictions.
 
         for inputs, targets in self.train_loader:
+            targets = targets.to(self.device)
             inputs = inputs.to(self.device, non_blocking=True)  # Asynchronous transfer to minimize data starvation.
             self.optimizer.zero_grad()
             outputs: Tensor = self.model(inputs)  # Type hinting 'outputs'. This does not affect the value in any way.
-            loss = self.loss_func(outputs, targets.to(self.device))
+            loss = self.loss_func(outputs, targets)
             loss.backward()
             self.optimizer.step()
             losses.append(loss.detach())
 
             with torch.no_grad:  # Number of correct values. Maximum of outputs is the same as softmax maximum.
-                correct += (targets == outputs.argmax(dim=1)).detach()
+                correct += (targets == outputs.argmax(dim=1)).sum().detach()
 
         accuracy = correct.item() / len(self.train_loader.dataset) * 100
-        epoch_loss = torch.mean(torch.stack(losses)).item()  # Minimizing device to host data transfer this way.
-        self.writer.add_scalar(tag='Train/epoch_loss', scalar_value=epoch_loss, global_step=self.epoch)
-        self.writer.add_scalar(tag='Train/epoch_accuracy', scalar_value=accuracy, global_step=self.epoch)
-        self.logger.info(f'Epoch {self.epoch:02d} Train epoch loss: {epoch_loss:.3f}, epoch accuracy {accuracy:.1f}%.')
-        for idx, group in enumerate(self.optimizer.param_groups, start=1):  # Recording learning rate.
-            self.writer.add_scalar(tag=f'Learning Rate {idx}', scalar_value=group['lr'])
-
+        self._write_epoch_metrics(accuracy=accuracy, losses=losses, is_train=True)
+        self._write_learning_rates()
         return accuracy
 
     def _eval_epoch(self) -> float:
@@ -73,18 +72,27 @@ class ClassificationModelTrainer:
         correct = torch.tensor(0, device=self.device)  # Counter for number of correct predictions.
 
         for inputs, targets in self.eval_loader:
-            outputs = self.model(inputs.to(self.device))  # Asynchronous transfer is impossible for evaluation.
-            loss = self.loss_func(outputs, targets.to(self.device))
+            targets = targets.to(self.device)
+            outputs: Tensor = self.model(inputs.to(self.device))  # Asynchronous transfer is impossible for evaluation.
+            loss = self.loss_func(outputs, targets)
             losses.append(loss)
-            correct += (targets == outputs.argmax(dim=1))
+            correct += (targets == outputs.argmax(dim=1)).sum()
 
         accuracy = correct.item() / len(self.eval_loader.dataset) * 100
-        epoch_loss = torch.mean(torch.stack(losses)).item()
-        self.writer.add_scalar(tag='Eval/epoch_loss', scalar_value=epoch_loss, global_step=self.epoch)
-        self.writer.add_scalar(tag='Eval/epoch_accuracy', scalar_value=accuracy, global_step=self.epoch)
-        self.logger.info(f'Epoch {self.epoch:02d} Eval epoch loss: {epoch_loss:.3f} epoch accuracy {accuracy:.1f}%.')
-
+        self._write_epoch_metrics(accuracy=accuracy, losses=losses, is_train=False)
         return accuracy
+
+    def _write_epoch_metrics(self, accuracy: float, losses: list, is_train: bool):
+        phase = 'Train' if is_train else 'Eval'
+        # epoch_loss is not a true mean because of the possibly smaller size of the last mini-batch, but this will do.
+        epoch_loss = torch.stack(losses).mean().item()  # Minimizing device to host data transfer this way.
+        self.writer.add_scalar(tag=f'{phase}/epoch_loss', scalar_value=epoch_loss, global_step=self.epoch)
+        self.writer.add_scalar(tag=f'{phase}/epoch_accuracy', scalar_value=accuracy, global_step=self.epoch)
+        self.logger.info(f'Epoch {self.epoch:02d} {phase} loss: {epoch_loss:.3f}, accuracy {accuracy:.1f}%.')
+
+    def _write_learning_rates(self):
+        for idx, group in enumerate(self.optimizer.param_groups, start=1):  # Recording learning rate.
+            self.writer.add_scalar(tag=f'Learning Rate {idx}', scalar_value=group['lr'])
 
     def _scheduler_step(self, metrics):
         if self.scheduler is not None:  # No learning rate scheduling if scheduler is None.
@@ -98,8 +106,8 @@ class ClassificationModelTrainer:
             self.epoch = epoch
             train_epoch_acc = self._train_epoch()
             eval_epoch_acc = self._eval_epoch()
-            self.manager.save(metric=eval_epoch_acc)
-            over_fit = eval_epoch_acc - train_epoch_acc
+            self.manager.save(metric=eval_epoch_acc)  # Save checkpoint
+            over_fit = eval_epoch_acc - train_epoch_acc  # Positive values indicate over-fitting.
             self.writer.add_scalar(tag='Over-fitting', scalar_value=over_fit, global_step=self.epoch)
             self.logger.info(f'Epoch {self.epoch:02d} Over-fitting: {over_fit:.3f}%.')
             self._scheduler_step(metrics=eval_epoch_acc)  # Scheduler step for all scheduler types.

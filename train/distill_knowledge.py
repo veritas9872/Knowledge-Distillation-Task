@@ -18,14 +18,14 @@ def main(opt):
     print(f'Using device {device}.')
 
     # The teacher and student model types and settings are fixed by the task.
-    # While best to set it with options, that is too much work.
+    # While best to set it with options, that would make it too hard to read.
     student = StudentNet(in_channels=3, num_classes=10).to(device, non_blocking=True)
-    teacher = vgg16_bn(num_classes=10)
+    teacher = vgg16_bn(num_classes=10)  # Settings for CIFAR10 dataset.
     load_model_from_checkpoint(model=teacher, load_dir=opt.teacher_checkpoint)
     teacher = teacher.to(device, non_blocking=True)
 
     optimizer = optim.Adam(params=student.parameters(), lr=opt.lr)
-    scheduler = None  # No learning rate scheduling.
+    scheduler = None  # No learning rate scheduling for now.
 
     # Saving options and extra information in json file for later viewing.
     opt.run_name = run_name

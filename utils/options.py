@@ -41,6 +41,9 @@ def knowledge_distillation_options(**defaults) -> argparse.ArgumentParser:
     # Knowledge Distillation specific arguments.
     kd = parser.add_argument_group(title='knowledge_distillation',
                                    description='Arguments specific to knowledge distillation.')
+    kd.add_argument('--teacher_checkpoint', type=str,
+                    help='Checkpoint file location of teacher to be used for knowledge distillation.')
+
     kd.add_argument('--alpha', type=float, help='Value deciding split between training loss between '
                                                 'ground truth targets and teacher predictions.')
     kd.add_argument('--temperature', default=1., type=float,

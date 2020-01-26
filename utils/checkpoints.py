@@ -8,7 +8,7 @@ class CheckpointManager:
     """
     A checkpoint manager for Pytorch models and optimizers loosely based on Keras/Tensorflow Checkpointers.
     Do not confuse with the Pytorch checkpoint module, which is not about saving the model for later use.
-    Note that the whole system is based on 1 indexing, not 0 indexing.
+    Note that the whole system is based on 1 based indexing, not 0 based indexing.
     """
     def __init__(self, model: nn.Module, optimizer: optim.Optimizer, checkpoint_path: str,
                  mode='min', save_best_only=False, max_to_keep=5, verbose=True):
@@ -17,7 +17,8 @@ class CheckpointManager:
         assert isinstance(max_to_keep, int) and (max_to_keep >= 0), 'Not a non-negative integer'
         assert mode in ('min', 'max'), 'Mode must be either "min" or "max"'
         checkpoint_path = Path(checkpoint_path)
-        assert checkpoint_path.exists(), 'Not a valid, existing path'
+        if not checkpoint_path.exists():
+            raise OSError('Not a valid, existing path')
 
         self.model = model
         self.optimizer = optimizer
@@ -43,8 +44,9 @@ class CheckpointManager:
         save_path = self.checkpoint_path / (f'{name}.tar' if name else f'checkpoint_{self.save_counter:03d}.tar')
 
         torch.save(save_dict, save_path)
-        print(f'Saved Checkpoint to {save_path}')
-        print(f'Checkpoint {self.save_counter:04d}: {save_path}')
+        if self.verbose:
+            print(f'Saved Checkpoint to {save_path}')
+            print(f'Checkpoint {self.save_counter:04d}: {save_path}')
 
         self.record_dict[self.save_counter] = save_path
 
@@ -105,10 +107,11 @@ class CheckpointManager:
 
 def load_model_from_checkpoint(model: nn.Module, load_dir: str):
     """
-    A simple function for loading checkpoints without having to use Checkpoint Manager. Very useful for evaluation.
-    Checkpoint manager was designed for loading checkpoints before resuming training.
-    model (nn.Module): Model architecture to be used.
-    load_dir (str): File path to the checkpoint file. Can also be a Path instead of a string.
+    A simple function for loading checkpoints without having to use Checkpoint Manager.
+    Very useful for evaluation since checkpoint manager was designed for loading checkpoints before resuming training.
+    Args:
+        model: model architecture whose values are to be restored from the checkpoint.
+        load_dir: the file path to the checkpoint
     """
     assert Path(load_dir).exists(), 'The specified directory does not exist'
     save_dict = torch.load(load_dir, map_location=model.device)  # Allow dynamic reloading to any device.

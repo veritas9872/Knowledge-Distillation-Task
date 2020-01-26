@@ -5,6 +5,15 @@ import torch
 
 
 def initialize(record_root: str, train_method: str):
+    """
+    Initialize the folders for storing logs and checkpoints. Also decides the names of runs.
+    Args:
+        record_root: root location for storing records.
+        train_method: method used for training.
+
+    Returns:
+
+    """
     record_root = Path(record_root)
     record_root.mkdir(exist_ok=True)
 
@@ -28,12 +37,6 @@ def initialize(record_root: str, train_method: str):
     print('Starting', run_name)
 
     return run_number, run_name, log_path, checkpoint_path
-
-
-def get_arg_parser(**args):
-    parser = argparse.ArgumentParser(description='Simple argument parser for placing default arguments as desired.')
-    parser.set_defaults(**args)
-    return parser
 
 
 def get_gpu_if_available(gpu: int = None):

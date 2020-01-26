@@ -9,6 +9,6 @@ from train.train_classifier import train_classifier
 
 if __name__ == '__main__':
     train_method = 'Teacher'
-    teacher = vgg16_bn(num_classes=10)
+    teacher = vgg16_bn(num_classes=10)  # Settings for the CIFAR10 dataset.
     options = classification_options().parse_args()
     train_classifier(options, model=teacher, train_method=train_method)

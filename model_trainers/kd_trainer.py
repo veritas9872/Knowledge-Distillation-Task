@@ -53,27 +53,27 @@ class KnowledgeDistillationModelTrainer:
         correct = torch.tensor(0, device=self.device)  # Counter for number of correct predictions.
 
         for inputs, targets in self.train_loader:
+            targets = targets.to(self.device)
             inputs = inputs.to(self.device, non_blocking=True)
             self.optimizer.zero_grad()
             with torch.no_grad:  # Remove gradient calculation for teacher to increase speed.
                 teacher_logits: Tensor = self.teacher(inputs)  # Teacher should not be training during KD.
             student_logits: Tensor = self.student(inputs)  # ': Tensor' indicates type hinting. No effect on anything.
-            kd_loss, loss_dict = self.loss_func(student_logits, teacher_logits, targets.to(self.device))
+            kd_loss, loss_dict = self.loss_func(student_logits, teacher_logits, targets)
             kd_loss.backward()
             self.optimizer.step()
 
             # Getting metrics
             with torch.no_grad:  # Number of correct values. Maximum of outputs is the same as softmax maximum.
-                correct += (targets == student_logits.argmax(dim=1)).detach()
+                correct += (targets == student_logits.argmax(dim=1)).sum().detach()
             metrics['kd_loss'].append(kd_loss.detach())
             for key, value in loss_dict.items():
                 metrics[key].append(value.detach())
 
         accuracy = correct.item() / len(self.train_loader.dataset) * 100
 
-        self._write_metrics(accuracy=accuracy, metrics=metrics, is_train=True)
-        for idx, group in enumerate(self.optimizer.param_groups, start=1):  # Recording learning rate.
-            self.writer.add_scalar(tag=f'Learning Rate {idx}', scalar_value=group['lr'])
+        self._write_epoch_metrics(accuracy=accuracy, metrics=metrics, is_train=True)
+        self._write_learning_rates()
 
         return accuracy
 
@@ -84,28 +84,37 @@ class KnowledgeDistillationModelTrainer:
         correct = torch.tensor(0, device=self.device)  # Counter for number of correct predictions.
 
         for inputs, targets in self.eval_loader:
+            targets = targets.to(self.device)
             inputs = inputs.to(self.device)
-            teacher_logits = self.teacher(inputs)
-            student_logits = self.student(inputs)
-            kd_loss, loss_dict = self.loss_func(student_logits, teacher_logits, targets.to(self.device))
+            teacher_logits: Tensor = self.teacher(inputs)
+            student_logits: Tensor = self.student(inputs)
+            kd_loss, loss_dict = self.loss_func(student_logits, teacher_logits, targets)
 
-            correct += (targets == student_logits.argmax(dim=1))
+            correct += (targets == student_logits.argmax(dim=1)).sum()
             metrics['kd_loss'].append(kd_loss)
             for key, value in loss_dict.items():
                 metrics[key].append(value)
 
         accuracy = correct.item() / len(self.eval_loader.dataset) * 100
-        self._write_metrics(accuracy=accuracy, metrics=metrics, is_train=False)
+        self._write_epoch_metrics(accuracy=accuracy, metrics=metrics, is_train=False)
         return accuracy
 
-    def _write_metrics(self, accuracy: float, metrics: dict, is_train: bool):
+    def _write_epoch_metrics(self, accuracy: float, metrics: dict, is_train: bool):
         phase = 'Train' if is_train else 'Eval'
+        self.logger.info(f'Epoch {self.epoch:02d} {phase} accuracy {accuracy:.1f}%.')
         self.writer.add_scalar(tag=f'{phase}/epoch_accuracy', scalar_value=accuracy, global_step=self.epoch)
         epoch_metrics = dict()
+        metric_string = f'Epoch {self.epoch:02d} {phase} '
         for key, value in metrics.items():  # Writing the component losses to Tensorboard.
-            epoch_metric = torch.mean(torch.stack(value)).item()
+            epoch_metric = torch.stack(value).mean().item()
             epoch_metrics[key] = epoch_metric
+            metric_string += f'{key} {value:.3f} '
             self.writer.add_scalar(tag=f'{phase}/epoch_{key}', scalar_value=epoch_metric, global_step=self.epoch)
+        self.logger.info(metric_string)
+
+    def _write_learning_rates(self):  # Recording learning rate.
+        for idx, group in enumerate(self.optimizer.param_groups, start=1):  # 1-based indexing.
+            self.writer.add_scalar(tag=f'Learning Rate {idx}', scalar_value=group['lr'])
 
     def _scheduler_step(self, metrics):
         if self.scheduler is not None:  # No learning rate scheduling if scheduler is None.
@@ -120,7 +129,7 @@ class KnowledgeDistillationModelTrainer:
             train_epoch_acc = self._train_epoch()
             eval_epoch_acc = self._eval_epoch()
             self.manager.save(metric=eval_epoch_acc)  # Save checkpoint.
-            over_fit = eval_epoch_acc - train_epoch_acc  # Calculate over-fitting.
+            over_fit = eval_epoch_acc - train_epoch_acc  # Positive values indicate over-fitting.
             self.writer.add_scalar(tag='Over-fitting', scalar_value=over_fit, global_step=self.epoch)
             self.logger.info(f'Epoch {self.epoch:02d} Over-fitting: {over_fit:.4f}.')
             self._scheduler_step(metrics=eval_epoch_acc)  # Scheduler step for all scheduler types.
