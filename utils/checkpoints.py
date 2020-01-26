@@ -103,15 +103,13 @@ class CheckpointManager:
         print('Done')
 
 
-def load_model_from_checkpoint(model, load_dir):
+def load_model_from_checkpoint(model: nn.Module, load_dir: str):
     """
     A simple function for loading checkpoints without having to use Checkpoint Manager. Very useful for evaluation.
     Checkpoint manager was designed for loading checkpoints before resuming training.
     model (nn.Module): Model architecture to be used.
     load_dir (str): File path to the checkpoint file. Can also be a Path instead of a string.
     """
-    assert isinstance(model, nn.Module), 'Model must be a Pytorch module.'
     assert Path(load_dir).exists(), 'The specified directory does not exist'
-    save_dict = torch.load(load_dir)
+    save_dict = torch.load(load_dir, map_location=model.device)  # Allow dynamic reloading to any device.
     model.load_state_dict(save_dict['model_state_dict'])
-    return model  # Not actually necessary to return the model but doing so anyway.
