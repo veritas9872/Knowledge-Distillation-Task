@@ -11,5 +11,8 @@ from train.train_classifier import train_classifier
 if __name__ == '__main__':
     train_method = 'Student'
     student = StudentNet(in_channels=3, num_classes=10)  # Settings for the CIFAR10 dataset.
-    options = classification_options().parse_args()
+    options = {
+        'num_epochs': 1
+    }
+    options = classification_options(**options).parse_args()
     train_classifier(options, model=student, train_method=train_method)

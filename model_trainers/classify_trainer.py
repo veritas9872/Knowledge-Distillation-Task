@@ -58,7 +58,7 @@ class ClassificationModelTrainer:
             self.optimizer.step()
             losses.append(loss.detach())
 
-            with torch.no_grad:  # Number of correct values. Maximum of outputs is the same as softmax maximum.
+            with torch.no_grad():  # Number of correct values. Maximum of outputs is the same as softmax maximum.
                 correct += (targets == outputs.argmax(dim=1)).sum().detach()
 
         accuracy = correct.item() / len(self.train_loader.dataset) * 100

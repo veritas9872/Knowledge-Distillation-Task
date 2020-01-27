@@ -58,7 +58,7 @@ class KnowledgeDistillationModelTrainer:
             targets = targets.to(self.device)
             inputs = inputs.to(self.device, non_blocking=True)
             self.optimizer.zero_grad()
-            with torch.no_grad:  # Remove gradient calculation for teacher to increase speed.
+            with torch.no_grad():  # Remove gradient calculation for teacher to increase speed.
                 teacher_logits: Tensor = self.teacher(inputs)  # Teacher should not be training during KD.
             student_logits: Tensor = self.student(inputs)  # ': Tensor' indicates type hinting. No effect on anything.
             kd_loss, loss_dict = self.loss_func(student_logits, teacher_logits, targets)
@@ -66,7 +66,7 @@ class KnowledgeDistillationModelTrainer:
             self.optimizer.step()
 
             # Getting metrics
-            with torch.no_grad:  # Number of correct values. Maximum of outputs is the same as softmax maximum.
+            with torch.no_grad():  # Number of correct values. Maximum of outputs is the same as softmax maximum.
                 correct += (targets == student_logits.argmax(dim=1)).sum().detach()
             metrics['kd_loss'].append(kd_loss.detach())
             for key, value in loss_dict.items():
