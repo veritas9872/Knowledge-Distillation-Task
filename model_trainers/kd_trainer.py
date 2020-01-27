@@ -11,6 +11,7 @@ from train.get_loaders import get_cifar10_loaders
 from train.kd_loss import KnowledgeDistillationLoss
 from utils.checkpoints import CheckpointManager
 from utils.logs import get_logger
+from utils.gpu_utils import get_single_model_device, get_single_model_device
 
 
 class KnowledgeDistillationModelTrainer:
@@ -24,7 +25,8 @@ class KnowledgeDistillationModelTrainer:
         self.logger = get_logger(name=__name__, save_dir=log_path)
         self.logger.info('Initializing Knowledge Distillation Model Trainer.')
 
-        assert teacher.device == student.device, 'Teacher and student are expected to be on the same device.'
+        assert get_single_model_device(teacher) == get_single_model_device(student), \
+            'Teacher and student are expected to be on the same single device.'
 
         if dataset.upper() == 'CIFAR10':
             train_loader, eval_loader = get_cifar10_loaders(
@@ -35,7 +37,7 @@ class KnowledgeDistillationModelTrainer:
         self.teacher = teacher
         self.student = student
         self.optimizer = optimizer
-        self.device = self.student.device
+        self.device = get_single_model_device(student)  # Gets device of module if on a single device.
         self.loss_func = KnowledgeDistillationLoss(alpha=alpha, temperature=temperature)
         self.writer = SummaryWriter(log_path)
         self.manager = CheckpointManager(student, optimizer, checkpoint_path, save_best_only=True)

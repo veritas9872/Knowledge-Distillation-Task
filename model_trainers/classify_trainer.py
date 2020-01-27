@@ -9,6 +9,7 @@ from tqdm import tqdm
 from train.get_loaders import get_cifar10_loaders
 from utils.checkpoints import CheckpointManager
 from utils.logs import get_logger
+from utils.gpu_utils import get_single_model_device
 
 
 class ClassificationModelTrainer:
@@ -32,7 +33,7 @@ class ClassificationModelTrainer:
 
         self.model = model  # Assumes model has already been sent to device.
         self.optimizer = optimizer  # Assumes optimizer is associated with model.
-        self.device = model.device
+        self.device = get_single_model_device(model)  # Finds device of model assuming it is on a single device.
         self.loss_func = nn.CrossEntropyLoss()
         self.writer = SummaryWriter(log_path)
         self.manager = CheckpointManager(model, optimizer, checkpoint_path, save_best_only=True)

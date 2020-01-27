@@ -1,7 +1,5 @@
-from pathlib import Path
 from datetime import datetime
-import argparse
-import torch
+from pathlib import Path
 
 
 def initialize(record_root: str, train_method: str):
@@ -39,6 +37,3 @@ def initialize(record_root: str, train_method: str):
     return run_number, run_name, log_path, checkpoint_path
 
 
-def get_gpu_if_available(gpu: int = None):
-    # Device agnostic setting.
-    return torch.device(f'cuda:{gpu}') if torch.cuda.is_available() and (gpu is not None) else torch.device('cpu')

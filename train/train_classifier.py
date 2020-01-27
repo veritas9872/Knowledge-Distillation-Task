@@ -3,7 +3,8 @@ Code for training the teacher network on the CIFA10 classification task.
 """
 from torch import nn, optim
 
-from utils.init import initialize, get_gpu_if_available
+from utils.init import initialize
+from utils.gpu_utils import get_gpu_if_available
 from utils.logs import save_dict_as_json
 from model_trainers.classify_trainer import ClassificationModelTrainer
 

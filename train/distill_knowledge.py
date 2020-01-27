@@ -6,7 +6,8 @@ from torchvision.models import vgg16_bn
 
 from networks.student import StudentNet
 from utils.checkpoints import load_model_from_checkpoint
-from utils.init import initialize, get_gpu_if_available
+from utils.init import initialize
+from utils.gpu_utils import get_gpu_if_available
 from utils.logs import save_dict_as_json
 from model_trainers.kd_trainer import KnowledgeDistillationModelTrainer
 from utils.options import knowledge_distillation_options
