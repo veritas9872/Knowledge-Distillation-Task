@@ -3,6 +3,8 @@ from pathlib import Path
 import torch
 from torch import nn, optim
 
+from utils.gpu_utils import get_single_model_device
+
 
 class CheckpointManager:
     """
@@ -10,13 +12,13 @@ class CheckpointManager:
     Do not confuse with the Pytorch checkpoint module, which is not about saving the model for later use.
     Note that the whole system is based on 1 based indexing, not 0 based indexing.
     """
-    def __init__(self, model: nn.Module, optimizer: optim.Optimizer, checkpoint_path: str,
+    def __init__(self, model: nn.Module, optimizer: optim.Optimizer, checkpoint_path: Path,
                  mode='min', save_best_only=False, max_to_keep=5, verbose=True):
 
         # Input checking.
         assert isinstance(max_to_keep, int) and (max_to_keep >= 0), 'Not a non-negative integer'
         assert mode in ('min', 'max'), 'Mode must be either "min" or "max"'
-        checkpoint_path = Path(checkpoint_path)
+        # checkpoint_path = Path(checkpoint_path)
         if not checkpoint_path.exists():
             raise OSError('Not a valid, existing path')
 
@@ -114,5 +116,6 @@ def load_model_from_checkpoint(model: nn.Module, load_dir: str):
         load_dir: the file path to the checkpoint
     """
     assert Path(load_dir).exists(), 'The specified directory does not exist'
-    save_dict = torch.load(load_dir, map_location=model.device)  # Allow dynamic reloading to any device.
+    # Allow dynamic reloading to any device assuming that the model is on a single device.
+    save_dict = torch.load(load_dir, map_location=get_single_model_device(model))
     model.load_state_dict(save_dict['model_state_dict'])

@@ -6,6 +6,8 @@ def base_options(**defaults) -> argparse.ArgumentParser:
 
     # Arguments common to all cases.
     parser.add_argument('--batch_size', type=int, default=1, help='Mini-batch size.')
+    parser.add_argument('--num_workers', type=int, default=1,
+                        help='Number of processes used for data pre-processing in the DataLoader.')
     parser.add_argument('--gpu', type=int, default=None,
                         help='Which GPU to use. Default is None, which indicates CPU.')
 
@@ -23,8 +25,12 @@ def train_options(**defaults) -> argparse.ArgumentParser:
 
     # Training specific arguments.
     training = parser.add_argument_group(title='training', description='Training specific parameters.')
-    training.add_argument('--lr', type=float, default=0.001, help='Initial learning rate.')
-    training.add_argument('--num_epochs', type=int, help='Number of epochs to train the model.')
+    training.add_argument('--lr', default=0.001, type=float, help='Initial learning rate.')
+    training.add_argument('--momentum', default=0.9, type=float, help='Momentum to use in SGD optimizer.')
+    training.add_argument('--nesterov', action='store_true',
+                          help='Whether to use nesterov momentum in SGD. Defaults to False.')
+    training.add_argument('--weight_decay', default=0.0001, type=float, help='Weight decay for SGD optimizer.')
+    training.add_argument('--num_epochs', default=400, type=int, help='Number of epochs to train the model.')
 
     parser.set_defaults(**defaults)
     return parser

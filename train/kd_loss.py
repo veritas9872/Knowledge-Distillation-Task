@@ -47,7 +47,7 @@ class KnowledgeDistillationLoss(nn.Module):
 
         """
         log_student_probs = F.log_softmax(student_logits / self.temperature, dim=1)
-        with torch.no_grad:  # Small speedup by removing unnecessary gradient calculations.
+        with torch.no_grad():  # Small speedup by removing unnecessary gradient calculations.
             teacher_probs = F.softmax(teacher_logits / self.temperature, dim=1)
         cross_entropy_loss = F.cross_entropy(input=student_logits, target=targets)
         distillation_loss = F.kl_div(input=log_student_probs, target=teacher_probs.detach(), reduction='batchmean')

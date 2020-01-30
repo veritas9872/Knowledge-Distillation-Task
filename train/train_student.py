@@ -2,6 +2,7 @@
 Code for training the student network on the CIFAR10 classification task.
 The main purpose of this script is as a benchmark to compare knowledge distillation with.
 """
+import torch
 from networks.student import StudentNet
 
 from utils.options import classification_options
@@ -10,6 +11,14 @@ from train.train_classifier import train_classifier
 
 if __name__ == '__main__':
     train_method = 'Student'
+    torch.backends.cudnn.benchmark = True  # Increase speed if input sizes are the same.
     student = StudentNet(in_channels=3, num_classes=10)  # Settings for the CIFAR10 dataset.
-    options = classification_options().parse_args()
+    options = dict(
+        num_epochs=400,
+        batch_size=256,
+        num_workers=4,
+        lr=0.1,
+        gpu=0
+    )
+    options = classification_options(**options).parse_args()
     train_classifier(options, model=student, train_method=train_method)
