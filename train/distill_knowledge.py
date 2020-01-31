@@ -28,7 +28,7 @@ def warm_up(epoch: int) -> float:  # Epochs are zero-indexed in schedulers by de
 
 
 def main(opt):
-    run_number, run_name, log_path, checkpoint_path = initialize(opt.record_path, train_method='KD')
+    run_number, run_name, log_path, checkpoint_path = initialize(opt.record_path, train_method=opt.train_method)
     device = get_gpu_if_available(gpu=opt.gpu)
     print(f'Using device {device}.')
 
@@ -55,8 +55,8 @@ def main(opt):
 
     trainer = KnowledgeDistillationModelTrainer(
         teacher=teacher, student=student, optimizer=optimizer, scheduler=scheduler, dataset='CIFAR10',
-        batch_size=opt.batch_size, num_workers=opt.num_workers, alpha=opt.alpha, temperature=opt.temperature,
-        data_path=opt.data_path, log_path=log_path, checkpoint_path=checkpoint_path)
+        batch_size=opt.batch_size, num_workers=opt.num_workers, distill_ratio=opt.distill_ratio,
+        temperature=opt.temperature, data_path=opt.data_path, log_path=log_path, checkpoint_path=checkpoint_path)
 
     trainer.train_model(num_epochs=opt.num_epochs)
 
@@ -69,9 +69,9 @@ if __name__ == '__main__':
         batch_size=256,
         num_workers=2,
         lr=0.1,
-        alpha=1.,
+        distill_ratio=0.95,
         temperature=1.,
-        gpu=0
+        gpu=1
     )
     options = knowledge_distillation_options(**options).parse_args()
     main(options)
