@@ -107,7 +107,7 @@ class ClassificationModelTrainer:
 
     def _train_model(self, num_epochs: int) -> float:
         best_acc = 0.
-        for epoch in range(1, num_epochs + 1):  # 1 based indexing. tqdm for progress bar.
+        for epoch in range(1, num_epochs + 1):  # 1 based indexing.
             self.epoch = epoch  # Update epoch.
             train_epoch_acc = self._train_epoch()
             eval_epoch_acc = self._eval_epoch()

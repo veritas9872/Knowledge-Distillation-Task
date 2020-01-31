@@ -1,5 +1,5 @@
 def test():
-    pass
+    assert True
 
 
 if __name__ == '__main__':
