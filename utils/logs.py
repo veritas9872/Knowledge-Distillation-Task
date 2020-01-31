@@ -4,8 +4,8 @@ from pathlib import Path
 
 
 def get_logger(name: str, save_dir: str = None) -> logging.Logger:
-    """
-    Function designed to get loggers for stdout and record to log file.
+    """Function designed to get loggers for stdout and record to log file.
+
     Args:
         name: name of logger.
         save_dir: directory to save logs.

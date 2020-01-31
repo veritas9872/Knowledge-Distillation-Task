@@ -1,3 +1,9 @@
+"""
+Code for applying grid search to find the best parameters for knowledge distillation.
+The distillation ratio and temperature parameters are being tuned in this search.
+"""
+import torch
+
 from train.distill_knowledge import main
 from utils.options import knowledge_distillation_options
 
@@ -24,4 +30,5 @@ def grid_search():
 
 
 if __name__ == '__main__':
+    torch.backends.cudnn.benchmark = True  # Increase speed if input sizes are the same.
     grid_search()

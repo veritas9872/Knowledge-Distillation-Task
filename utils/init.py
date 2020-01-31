@@ -3,14 +3,14 @@ from pathlib import Path
 
 
 def initialize(record_root: str, train_method: str):
-    """
-    Initialize the folders for storing logs and checkpoints. Also decides the names of runs.
+    """Initialize the folders for storing logs and checkpoints. Also decides the names of runs.
+
     Args:
         record_root: root location for storing records.
         train_method: method used for training.
 
     Returns:
-
+        The component parts of the initialization.
     """
     record_root = Path(record_root)
     record_root.mkdir(exist_ok=True)

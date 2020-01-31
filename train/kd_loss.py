@@ -5,19 +5,20 @@ import torch.nn.functional as F
 
 class KnowledgeDistillationLoss(nn.Module):
     """
-    Knowledge Distillation loss as proposed by Hinton et al.
+    Knowledge Distillation loss as proposed by Hinton et al. in https://arxiv.org/pdf/1503.02531.pdf.
     """
     def __init__(self, distill_ratio: float, temperature: float):
-        """
-        Set distill_ratio and temperature parameters for KD loss calculation.
+        """Set distill_ratio and temperature parameters for KD loss calculation.
+
         This paper https://arxiv.org/pdf/1912.10850.pdf has a clean equation for the loss in Eq (1).
         Args:
             distill_ratio: scalar defining ratio of knowledge distillation to ground truth learning losses.
                 (1-distill_ratio)*CE+(distill_ratio)*KL is used to split the two components.
                 CE for cross-entropy with ground-truth labels, KL for KL divergence between student and teacher logits.
             temperature: temperature factor for increasing entropy in the KL divergence portion.
-                The square of the temperature is multiplied to the KL portion for rescaling gradients.
+                The square of the temperature is multiplied to the KL portion for rescaling gradients during training.
                 Applying temperature scales gradients by 1/T^2. Multiply with T^2 to restore the original scale.
+                Temperature scaling should not be applied in the test phase.
         """
         super().__init__()
         assert 0 <= distill_ratio <= 1, 'Invalid value for distill_ratio.'
@@ -29,12 +30,13 @@ class KnowledgeDistillationLoss(nn.Module):
         self.kl = distill_ratio * temperature * temperature  # KL Divergence ratio.
 
     def forward(self, student_logits: Tensor, teacher_logits: Tensor, targets: Tensor) -> (Tensor, dict):
-        """
+        """Calculate forward pass of KD loss.
+
         Pytorch KL Divergence expects log-probabilities as inputs. Targets are true probabilities.
         Also, the reduction='mean' is incorrectly implemented and reduction='batchmean'
         is needed for the correct answer until the next major release (Pytorch 2.x).
-        In D_KL(P||Q), P is target and Q is input.
-        The order in the function might be somewhat confusing since targets come second, not first.
+        In KL(P||Q), P is 'target' and Q is 'input'.
+        The order in the function might be somewhat confusing since 'target' comes second, not first.
         Gradients are detached from teacher because teachers should not be trained during knowledge distillation.
         Args:
             student_logits: logit outputs from student model
@@ -43,7 +45,7 @@ class KnowledgeDistillationLoss(nn.Module):
 
         Returns:
             The knowledge distillation loss as a single scalar tensor and the other losses in a dictionary.
-            The other losses are returned so that they can be displayed on Tensorboard.
+            The other losses are returned to be displayed on Tensorboard, etc.
 
         """
         log_student_probs = F.log_softmax(student_logits / self.temperature, dim=1)

@@ -87,7 +87,8 @@ class ClassificationModelTrainer:
     def _write_epoch_metrics(self, accuracy: float, losses: list, is_train: bool):
         phase = 'Train' if is_train else 'Eval'
         # epoch_loss is not a true mean because of the possibly smaller size of the last mini-batch, but this will do.
-        epoch_loss = torch.stack(losses).mean().item()  # Minimizing device to host data transfer this way.
+        with torch.no_grad():  # Small speed-up by removing unnecessary gradient calculations.
+            epoch_loss = torch.stack(losses).mean().item()  # Minimizing device to host data transfer this way.
         self.writer.add_scalar(tag=f'{phase}/epoch_loss', scalar_value=epoch_loss, global_step=self.epoch)
         self.writer.add_scalar(tag=f'{phase}/epoch_accuracy', scalar_value=accuracy, global_step=self.epoch)
         toc = int(time() - self.tic)

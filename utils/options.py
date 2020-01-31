@@ -17,6 +17,7 @@ def base_options(**defaults) -> argparse.ArgumentParser:
                             help='Common root path for logs and checkpoint files.')
     file_paths.add_argument('--data_path', type=str, default='../data', help='Data root path.')
 
+    parser.set_defaults(**defaults)  # set_defaults must be at the end to override other settings.
     return parser
 
 
@@ -38,6 +39,7 @@ def train_options(**defaults) -> argparse.ArgumentParser:
 
 def classification_options(**defaults) -> argparse.ArgumentParser:
     parser = train_options(**defaults)
+    parser.set_defaults(**defaults)
     return parser
 
 
@@ -55,4 +57,5 @@ def knowledge_distillation_options(**defaults) -> argparse.ArgumentParser:
     kd.add_argument('--temperature', default=1., type=float,
                     help='Temperature value deciding entropy of teacher predictions. Helps ease learning.')
 
+    parser.set_defaults(**defaults)
     return parser

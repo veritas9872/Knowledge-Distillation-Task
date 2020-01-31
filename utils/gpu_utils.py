@@ -8,8 +8,8 @@ def get_gpu_if_available(gpu: int = None):
 
 
 def get_single_model_device(model: nn.Module) -> torch.device:
-    """
-    Function for retrieving device of a model, assuming that it is on a single device.
+    """Function for retrieving device of a model, assuming that it is on a single device.
+
     Args:
         model: The model, assumed to be on a single device.
 
