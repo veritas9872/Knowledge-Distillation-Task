@@ -114,7 +114,7 @@ class ClassificationModelTrainer:
             eval_epoch_acc = self._eval_epoch()
             best_acc = max(best_acc, eval_epoch_acc)  # Update best performance if
             self._write_learning_rates()
-            self.manager.save(metric=eval_epoch_acc)  # Save checkpoint.
+            self.manager.save(metric=eval_epoch_acc, epoch=self.epoch)  # Save checkpoint.
             over_fit = train_epoch_acc - eval_epoch_acc  # Positive values indicate over-fitting.
             self.writer.add_scalar(tag='Over-fitting', scalar_value=over_fit, global_step=self.epoch)
             self.logger.info(f'Epoch {self.epoch:02d} Over-fitting: {over_fit:.3f}.')
