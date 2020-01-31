@@ -2,9 +2,9 @@ from torch import nn, Tensor
 
 
 class StudentBlock(nn.Module):
-    """
-    Basic block for the student network.
-    Conv, BN, ReLU, MP.
+    """Basic block for the student network.
+
+    Structure: Conv, BN, ReLU, MP.
     All conv layers have 3x3 kernels.
     Max poling is 2x2.
     Zero padding included for smoother size reduction.
@@ -23,8 +23,8 @@ class StudentBlock(nn.Module):
 
 
 class StudentNet(nn.Module):
-    """
-    Student network for knowledge distillation.
+    """Student network for knowledge distillation.
+
     All blocks have 64 channel depth.
     Input size must be 32x32 because of the fully connected layer.
     """

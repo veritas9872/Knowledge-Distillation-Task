@@ -15,6 +15,9 @@ from utils.gpu_utils import get_single_model_device
 
 
 class KnowledgeDistillationModelTrainer:
+    """
+    Model trainer for knowledge distillation task.
+    """
     SchedulerType = Union[optim.lr_scheduler._LRScheduler, optim.lr_scheduler.ReduceLROnPlateau]
 
     def __init__(self, teacher: nn.Module, student: nn.Module, optimizer: optim.Optimizer, scheduler: SchedulerType,
@@ -107,7 +110,8 @@ class KnowledgeDistillationModelTrainer:
         epoch_metrics = dict()
         metric_string = f'Epoch {self.epoch:02d} {phase} '
         for key, value in metrics.items():  # Writing the component losses to Tensorboard.
-            epoch_metric = torch.stack(value).mean().item()
+            with torch.no_grad():  # Small speed-up by removing unnecessary gradient calculations.
+                epoch_metric = torch.stack(value).mean().item()
             epoch_metrics[key] = epoch_metric
             metric_string += f'{key}: {epoch_metric:.3f}, '
             self.writer.add_scalar(tag=f'{phase}/epoch_{key}', scalar_value=epoch_metric, global_step=self.epoch)
@@ -134,7 +138,7 @@ class KnowledgeDistillationModelTrainer:
             eval_epoch_acc = self._eval_epoch()
             best_acc = max(best_acc, eval_epoch_acc)  # Update best performance if
             self._write_learning_rates()
-            self.manager.save(metric=eval_epoch_acc)  # Save checkpoint.
+            self.manager.save(metric=eval_epoch_acc, epoch=self.epoch)  # Save checkpoint.
             over_fit = train_epoch_acc - eval_epoch_acc  # Positive values indicate over-fitting.
             self.writer.add_scalar(tag='Over-fitting', scalar_value=over_fit, global_step=self.epoch)
             self.logger.info(f'Epoch {self.epoch:02d} Over-fitting: {over_fit:.3f}.')
@@ -153,6 +157,3 @@ class KnowledgeDistillationModelTrainer:
             self.writer.flush()  # Write to tensorboard before terminating.
             self.logger.info('Training interrupted before completion.')
             return -1
-
-
-

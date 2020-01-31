@@ -5,7 +5,8 @@ from torchvision.transforms import ToTensor, Compose, RandomHorizontalFlip, Rand
 
 def get_cifar10_loaders(data_root: str, batch_size: int, num_workers: int, augment=True) -> (DataLoader, DataLoader):
     """ Function for retrieving CIFAR10 data as data loaders.
-    Training set is augmented. ToTensor() automatically divides by 255.
+
+    Training set is augmented. Note that ToTensor() automatically divides by 255.
     Args:
         data_root: Path to CIFAR10 data.
         batch_size: Batch size of data.
@@ -24,8 +25,6 @@ def get_cifar10_loaders(data_root: str, batch_size: int, num_workers: int, augme
 
     train_set = CIFAR10(root=data_root, train=True, transform=train_transform, download=True)
     eval_set = CIFAR10(root=data_root, train=False, transform=eval_transform, download=True)
-    train_loader = DataLoader(dataset=train_set, batch_size=batch_size, shuffle=True,
-                              num_workers=num_workers, pin_memory=True)
-    eval_loader = DataLoader(dataset=eval_set, batch_size=batch_size, shuffle=False,
-                             num_workers=num_workers, pin_memory=True)
+    train_loader = DataLoader(train_set, batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+    eval_loader = DataLoader(eval_set, batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
     return train_loader, eval_loader

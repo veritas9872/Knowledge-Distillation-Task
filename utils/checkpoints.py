@@ -7,8 +7,8 @@ from utils.gpu_utils import get_single_model_device
 
 
 class CheckpointManager:
-    """
-    A checkpoint manager for Pytorch models and optimizers loosely based on Keras/Tensorflow Checkpointers.
+    """A checkpoint manager for Pytorch models and optimizers loosely based on Keras/Tensorflow Checkpointers.
+
     Do not confuse with the Pytorch checkpoint module, which is not about saving the model for later use.
     Note that the whole system is based on 1 based indexing, not 0 based indexing.
     """
@@ -108,8 +108,8 @@ class CheckpointManager:
 
 
 def load_model_from_checkpoint(model: nn.Module, load_dir: str):
-    """
-    A simple function for loading checkpoints without having to use Checkpoint Manager.
+    """A simple function for loading checkpoints without having to use Checkpoint Manager.
+
     Very useful for evaluation since checkpoint manager was designed for loading checkpoints before resuming training.
     Args:
         model: model architecture whose values are to be restored from the checkpoint.
