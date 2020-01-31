@@ -18,7 +18,7 @@ class KnowledgeDistillationModelTrainer:
     SchedulerType = Union[optim.lr_scheduler._LRScheduler, optim.lr_scheduler.ReduceLROnPlateau]
 
     def __init__(self, teacher: nn.Module, student: nn.Module, optimizer: optim.Optimizer, scheduler: SchedulerType,
-                 dataset: str, batch_size: int, num_workers: int, alpha: float, temperature: float,
+                 dataset: str, batch_size: int, num_workers: int, distill_ratio: float, temperature: float,
                  data_path: Path, log_path: Path, checkpoint_path: Path):
         self.logger = get_logger(name=__name__, save_dir=str(log_path / 'logs'))
         self.logger.info('Initializing Knowledge Distillation Model Trainer.')
@@ -36,7 +36,7 @@ class KnowledgeDistillationModelTrainer:
         self.student = student
         self.optimizer = optimizer
         self.device = get_single_model_device(student)  # Gets device of module if on a single device.
-        self.loss_func = KnowledgeDistillationLoss(alpha=alpha, temperature=temperature)
+        self.loss_func = KnowledgeDistillationLoss(distill_ratio=distill_ratio, temperature=temperature)
         self.writer = SummaryWriter(str(log_path))
         self.manager = CheckpointManager(student, optimizer, checkpoint_path, mode='max', save_best_only=True)
         self.scheduler = scheduler
