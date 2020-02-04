@@ -28,7 +28,7 @@ def get_logger(name: str, save_dir: str = None) -> logging.Logger:
     c_handler.setFormatter(c_format)
     logger.addHandler(c_handler)
 
-    if save_dir:  # Save logs to a log file.
+    if save_dir:  # Save logs to a log file. Exclusive writing just in case of bugs.
         f_handler = logging.FileHandler(filename=str(save_dir) + '.log', mode='x')
         f_handler.setLevel(logging.INFO)
         f_format = logging.Formatter('{asctime} - {name} - {levelname:8s} - {message}', style='{')
@@ -48,5 +48,5 @@ class CustomJSONEncoder(json.JSONEncoder):
 
 def save_dict_as_json(dict_data: dict, log_dir: str, save_name: str):
     file_dir = Path(log_dir, f'{save_name}.json')
-    with open(file_dir, mode='w') as jf:
+    with open(file_dir, mode='x') as jf:  # Exclusive writing just in case of unimagined bugs.
         json.dump(dict_data, jf, indent=2, sort_keys=True, cls=CustomJSONEncoder)

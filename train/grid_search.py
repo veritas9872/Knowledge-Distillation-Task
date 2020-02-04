@@ -16,7 +16,7 @@ def grid_search():
         batch_size=512,
         num_workers=4,
         lr=0.1,
-        gpu=1
+        gpu=0
     )
     temperatures = [1, 2, 4, 8, 16, 32, 64]
     distill_ratios = [1., 0.99, 0.95, 0.9, 0.75, 0.5, 0.25, 0.1, 0.05, 0.01, 0.]

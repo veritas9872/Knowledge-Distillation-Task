@@ -27,7 +27,7 @@ class KnowledgeDistillationLoss(nn.Module):
         self.temperature = temperature
         # Defining ratio factors.
         self.ce = 1 - distill_ratio  # Cross Entropy ratio.
-        self.kl = distill_ratio * temperature * temperature  # KL Divergence ratio.
+        self.kl = distill_ratio * temperature * temperature  # KL Divergence ratio and temperature rescaling.
 
     def forward(self, student_logits: Tensor, teacher_logits: Tensor, targets: Tensor) -> (Tensor, dict):
         """Calculate forward pass of KD loss.
@@ -38,6 +38,9 @@ class KnowledgeDistillationLoss(nn.Module):
         In KL(P||Q), P is 'target' and Q is 'input'.
         The order in the function might be somewhat confusing since 'target' comes second, not first.
         Gradients are detached from teacher because teachers should not be trained during knowledge distillation.
+        Currently returns the un-rescaled distillation loss.
+        Perhaps the temperature rescaled version should be returned instead?
+
         Args:
             student_logits: logit outputs from student model
             teacher_logits: logit outputs from teacher model

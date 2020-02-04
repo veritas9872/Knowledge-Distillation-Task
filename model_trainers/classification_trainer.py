@@ -34,7 +34,8 @@ class ClassificationModelTrainer:
         self.device = get_single_model_device(model)  # Finds device of model assuming it is on a single device.
         self.loss_func = nn.CrossEntropyLoss()
         self.writer = SummaryWriter(str(log_path))
-        self.manager = CheckpointManager(model, optimizer, checkpoint_path, mode='max', save_best_only=True)
+        self.manager = CheckpointManager(model, optimizer, checkpoint_path, mode='max',
+                                         save_best_only=True, max_to_keep=1)
         self.scheduler = scheduler  # No learning rate scheduling if scheduler = None.
         self.train_loader = train_loader
         self.eval_loader = eval_loader
