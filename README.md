@@ -10,3 +10,5 @@ Only CIFAR10 is implemented for this project.
 Also, the teacher and student models are fixed beforehand.
 
 To change these settings, the project will have to be modified for extra options.
+
+

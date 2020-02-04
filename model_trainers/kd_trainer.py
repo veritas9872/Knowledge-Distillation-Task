@@ -41,7 +41,8 @@ class KnowledgeDistillationModelTrainer:
         self.device = get_single_model_device(student)  # Gets device of module if on a single device.
         self.loss_func = KnowledgeDistillationLoss(distill_ratio=distill_ratio, temperature=temperature)
         self.writer = SummaryWriter(str(log_path))
-        self.manager = CheckpointManager(student, optimizer, checkpoint_path, mode='max', save_best_only=True)
+        self.manager = CheckpointManager(student, optimizer, checkpoint_path, mode='max',
+                                         save_best_only=True, max_to_keep=1)
         self.scheduler = scheduler
         self.train_loader = train_loader
         self.eval_loader = eval_loader
@@ -156,4 +157,4 @@ class KnowledgeDistillationModelTrainer:
         except KeyboardInterrupt:
             self.writer.flush()  # Write to tensorboard before terminating.
             self.logger.info('Training interrupted before completion.')
-            return -1
+            exit()  # Otherwise, sequential runs will never terminate.
