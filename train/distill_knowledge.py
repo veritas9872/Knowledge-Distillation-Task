@@ -64,7 +64,7 @@ def main(opt):
 if __name__ == '__main__':
     torch.backends.cudnn.benchmark = True  # Increase speed if input sizes are the same.
     options = dict(
-        teacher_checkpoint='../records/Teacher/Trial 08  2020-01-30 14-22-32/checkpoints/checkpoint_040.tar',
+        teacher_checkpoint='',
         num_workers=2,
         lr=0.1,
         distill_ratio=0.95,

@@ -10,6 +10,9 @@ def get_gpu_if_available(gpu: int = None):
 def get_single_model_device(model: nn.Module) -> torch.device:
     """Function for retrieving device of a model, assuming that it is on a single device.
 
+    If the model is on multiple devices, this function will return the first device.
+    There will be a silent error. This should be fixed if possible.
+
     Args:
         model: The model, assumed to be on a single device.
 

@@ -11,7 +11,7 @@ from train.train_classifier import train_classifier
 if __name__ == '__main__':
     train_method = 'Teacher'
     # torch.backends.cudnn.benchmark = True  # Increase speed if input sizes are the same.
-    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.benchmark = False  # Reproducibility settings.
     torch.backends.cudnn.deterministic = True
     torch.random.manual_seed(9872)
     teacher = vgg16_bn(num_classes=10)  # Settings for the CIFAR10 dataset.
