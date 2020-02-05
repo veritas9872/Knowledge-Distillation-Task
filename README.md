@@ -39,6 +39,8 @@ Also, the teacher and student models are fixed beforehand.
 Data augmentation method, optimizer type, learning rate scheduling, etc.
 cannot be altered via the command line with the current implementation.
 
-Reproducibility is also fixed on a single seed. This will reduce training speeds somewhat.
+Reproducibility is fixed on a single seed. 
+
+Reproducibility settings also reduce speeds.
 
 Moreover, this project assumes the use of a single GPU device for all models.
