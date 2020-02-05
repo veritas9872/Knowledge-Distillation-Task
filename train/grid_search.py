@@ -10,9 +10,7 @@ from utils.options import knowledge_distillation_options
 
 def grid_search():
     options = dict(
-        teacher_checkpoint='../records/Teacher/Trial 08  2020-01-30 14-22-32/checkpoints/checkpoint_040.tar',
         train_method='Search',
-        num_epochs=400,
         batch_size=512,
         num_workers=4,
         lr=0.1,

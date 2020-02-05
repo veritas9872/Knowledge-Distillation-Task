@@ -14,3 +14,12 @@
 2. Student (No KD): 88.31%
 3. Student (Only KD): 88.28%
 4. Student (distill_ratio=0.5, temperature=32): 89.76%
+
+
+N.B. Reproducibility was not perfect, despite the reproducibility settings.
+
+
+### Analysis
+1. Using no knowledge distillation and using only knowledge distillation produces similar results.
+2. Knowledge distillation improved performance in these settings by approximately 1.5%.
+3. There seem to be several clusters of near-optimal settings for hyper-parameters.

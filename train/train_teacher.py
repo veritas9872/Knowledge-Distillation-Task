@@ -15,12 +15,6 @@ if __name__ == '__main__':
     torch.backends.cudnn.deterministic = True
     torch.random.manual_seed(9872)
     teacher = vgg16_bn(num_classes=10)  # Settings for the CIFAR10 dataset.
-    options = dict(
-        num_epochs=400,
-        batch_size=512,
-        num_workers=4,
-        lr=0.1,
-        gpu=1
-    )
+    options = dict()
     options = classification_options(**options).parse_args()
     train_classifier(options, model=teacher, train_method=train_method)
