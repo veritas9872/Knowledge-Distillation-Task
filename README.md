@@ -12,12 +12,15 @@ Then use the following commands on the command line.
 
 1. Train teacher: `python -m train.train_teacher (options)`
 2. Train student: `python -m train.train_student (options)`
-3. Knowledge Distillation: `python -m train.distill_knowledge (options)`
-4. Grid Search: `python -m train.grid_search (options)`
+3. Grid Search: `python -m train.grid_search (options)`
 
 Example usage:
 1. `python -m train.train_teacher --gpu 0`
 2. `python -m train.grid_search --gpu 0 --teacher_checkpoint ./records/Teacher/Trial 08  2020-01-30 14-22-32/checkpoints/checkpoint_040.tar`
+
+Visualization on Tensorboard requires the following command:
+
+`tensorboard --logdir ./path/to/logs`
 
 #### Behavior
 
