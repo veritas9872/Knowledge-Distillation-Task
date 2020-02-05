@@ -10,11 +10,7 @@ from utils.options import knowledge_distillation_options
 
 def grid_search():
     options = dict(
-        train_method='Search',
-        batch_size=512,
-        num_workers=4,
-        lr=0.1,
-        gpu=0
+        train_method='Search'
     )
     temperatures = [1, 2, 4, 8, 16, 32, 64]
     distill_ratios = [1., 0.99, 0.95, 0.9, 0.75, 0.5, 0.25, 0.1, 0.05, 0.01, 0.]
