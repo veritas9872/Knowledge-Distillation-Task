@@ -62,6 +62,8 @@ def main(opt):
 
 
 if __name__ == '__main__':
+    # Example of non-reproducible training run.
+    # Using options as a default dictionary input can be convenient for fast develeopment.
     torch.backends.cudnn.benchmark = True  # Increase speed if input sizes are the same.
     options = dict(
         teacher_checkpoint='',
