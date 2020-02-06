@@ -16,7 +16,7 @@ Then use the following commands on the command line.
 
 Example usage:
 1. `python -m train.train_teacher --gpu 0`
-2. `python -m train.grid_search --gpu 0 --teacher_checkpoint ./records/Teacher/Trial 08  2020-01-30 14-22-32/checkpoints/checkpoint_040.tar`
+2. `python -m train.grid_search --gpu 0 --teacher_checkpoint "./records/Teacher/Trial 08  2020-01-30 14-22-32/checkpoints/checkpoint_040.tar"`
 
 Visualization on Tensorboard requires the following command:
 
